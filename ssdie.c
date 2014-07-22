@@ -1,76 +1,77 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sqlite3.h>
 #include "ssdie.h"
 
+#if DEPR
+#include ssdie_depre.h
+#endif
+
+FILE* logfile;
+
 int main(int argc, char** argv) {
 
     char* dbname = argv[1];
-
-    if(argc == 1) {
-      fprintf(stderr, "No Skype main.db specified\n");
+  
+    if(argc != 3) {
+      fprintf(stderr, "USAGE: ssdie [DB Path] [FILENAME]");
       return EXIT_FAILURE;
     }
 
-    sqlite3* db = open_sql_database(dbname);
-    printf("%s","Starting to extract Contacts");
-    extract_contacts(db);
+    logfile = fopen(argv[2],"ab+");
     
+    sqlite3* db = open_sql_database(dbname);
+    printf("\n%s","Starting to extract Contacts");
+    extract_contacts(db);
+    printf("\n%s\n","Starting to extract Personal Profile");
+    extract_profile(db);
+
     sqlite3_close(db);
+    close(logfile); 
+    return EXIT_SUCCESS;
 }
 
 int extract_profile(sqlite3* db) {
-    sqlite3_stmt* profile_stmt = get_sql_statement("select fullname, legnth(fullname), skypename, length(skypename), city, length(city), country, length(country), about FROM Accounts",db);
-       
- 
+    sqlite3_stmt* profile_stmt = get_sql_statement("select fullname, skypename, city, country, about FROM Accounts;",db);
+    fprintf(logfile, "\n%s\n","PERSONAL PROFILE FOUND");
+    
+    if(sqlite3_step(profile_stmt) == SQLITE_ROW) {	
+	fprintf(logfile,"\nFullName: %s\n",sqlite3_column_text(profile_stmt,0));
+	fprintf(logfile,"\nSkypeName: %s\n",sqlite3_column_text(profile_stmt,1));
+	fprintf(logfile,"\nCity: %s\n", sqlite3_column_text(profile_stmt,2));
+	fprintf(logfile,"\nCountry: %s\n", sqlite3_column_text(profile_stmt,3));
+ 	fprintf(logfile,"\nAbout: %s\n", sqlite3_column_text(profile_stmt,4));
+    }
+
+    free_sql_statement(profile_stmt); 
     return EXIT_SUCCESS; 
 }
 
 int extract_contacts(sqlite3* db) {
-    sqlite3_stmt* contact_stmt = get_sql_statement("select displayname, length(displayname), skypename, length(skypename), phone_mobile, length(phone_mobile), datetime(lastonline_timestamp, 'unixepoch'), about from contacts",db);					  
-    //SQL columns
-    char* displayname;
-    char* skypename;
-
+    sqlite3_stmt* contact_stmt = get_sql_statement("select displayname, skypename, phone_mobile, datetime(lastonline_timestamp, 'unixepoch'), about from contacts",db);
     int result;    
-
+    fprintf(logfile,"\n%s\n","PERSONAL CONTACTS FOUND");
+    
     do {
         result = sqlite3_step(contact_stmt);
 
         if(result == SQLITE_ROW) {
-	    displayname = alloc_sql_text_column(contact_stmt,1);
-	    skypename = alloc_sql_text_column(contact_stmt,3);
-
-            strcpy(displayname, sqlite3_column_text(contact_stmt,0)); //Get FullName
-            strcpy(skypename,sqlite3_column_text(contact_stmt,2)); //Get SkypeName
-
-            printf("\nFullName: %s and SkypeName: %s",displayname,skypename);
-
-            check_ambig_text_column(contact_stmt,"PhoneNum",4,5);  //Check if value exists at Skype Phone Number 
-             
-            free(displayname);
-	    free(skypename);
+            fprintf(logfile,"\nFullName: %s and SkypeName: %s ",sqlite3_column_text(contact_stmt,0)
+                                                              ,sqlite3_column_text(contact_stmt,1));
+            check_ambig_text_column(contact_stmt,"PhoneNum",2);  //Check if value exists at Skype Phone Number
+            fprintf(logfile,"%c",'\n');
         }
     } while (result == SQLITE_ROW);
    
     //Cleanup and Free memory
     free_sql_statement(contact_stmt); 
-    
     return EXIT_SUCCESS;  
 }
 
-void* alloc_sql_text_column(sqlite3_stmt* stmt, int column) {
-	return malloc((sqlite3_column_int(stmt,column) + 1) * sizeof(char));
-}
-
-void check_ambig_text_column (sqlite3_stmt* stmt, char* columnname, int column, int column_with_length) {
+void check_ambig_text_column (sqlite3_stmt* stmt, char* columnname, int column) {
 	if (sqlite3_column_type(stmt, column) != SQLITE_NULL) {
-		char* column_text = alloc_sql_text_column(stmt,column_with_length);
-		strcpy(column_text, sqlite3_column_text(stmt,column));
-		printf("%s: %s\n", columnname, column_text);
-                free(column_text);
+	    fprintf(logfile,"%s: %s\n", columnname, sqlite3_column_text(stmt,column));
 	}
 }
 
@@ -102,4 +103,10 @@ void free_sql_statement(sqlite3_stmt* stmt_to_free) {
 	exit(0);
     }
 }
+#if DEPRE
 
+void* alloc_sql_text_column(sqlite3_stmt* stmt, int column) {
+	return malloc((sqlite3_column_int(stmt,column) + 1) * sizeof(char));
+}
+
+#endif 
