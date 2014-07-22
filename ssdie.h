@@ -7,4 +7,3 @@ void check_ambig_text_column_(sqlite3_stmt*, char*,int);
 //Extractor prototypes
 int extract_contacts(sqlite3*);
 int extract_profile(sqlite3*);
-void* alloc_sql_text_column(sqlite3_stmt*, int);
