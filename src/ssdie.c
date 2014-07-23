@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sqlite3.h>
 
 #include "header/ssdie.h"
@@ -8,35 +7,6 @@
 #include "header/file_functions.h"
 
 
-sqlite3* db;
-char* pathname;
-
-int main(int argc, char** argv) {
-
-  
-    if(argc != 4) {
-      fprintf(stderr, "USAGE: ssdie [DB Path] [DIRNAME] [DIRPATH]");
-      return EXIT_FAILURE;
-    }
-    
-    char* dbname = argv[1];
-    char* rootdir = argv[3]; //Rootdir the directory in which the directory that will contain the result files will be contained in.
-    
-    db = open_sql_database(dbname);
-  
-    pathname = concat_pathname_elements(rootdir,argv[2]); //Create the pathname for the directory that will contain the result files. 
-    check_make_result_dir(pathname); //Create the directory
-
-    printf("\nExtracting to directory: %s",pathname);
-    printf("\n%s","Starting to extract Contacts"); //Begin extraction process. 
-    extract_contacts(db);
-    printf("\n%s\n","Starting to extract Personal Profile");
-    extract_profile(db);
-
-    free(pathname); 
-    sqlite3_close(db); 
-    return EXIT_SUCCESS;
-}
 
 void extract_profile(sqlite3* db) {
     sqlite3_stmt* profile_stmt = get_sql_statement("select fullname, skypename, city, country, about FROM Accounts;",db);
