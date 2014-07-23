@@ -14,7 +14,7 @@ sqlite3_stmt* get_sql_statement(char* sqlstmt, sqlite3* db) {
 							    != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare Database\n");
         sqlite3_close(db);
-        exit(0);
+        exit(EXIT_FAILURE);
     }
     return stmt;
 }
@@ -25,7 +25,7 @@ sqlite3* open_sql_database(char* dbname) {
     if((sqlite3_open(dbname,&db)) != SQLITE_OK) {
         fprintf(stderr, "Failed Open Database\n");
         sqlite3_close(db);
-        exit(0);
+        exit(EXIT_FAILURE);
     }
     return db;
 }
@@ -33,7 +33,7 @@ sqlite3* open_sql_database(char* dbname) {
 void free_sql_statement(sqlite3_stmt* stmt_to_free) {
     if((sqlite3_finalize(stmt_to_free)) != SQLITE_OK) {
 	fprintf(stderr,"ERROR: Freeing SQL Statement Memory Failed");
-	exit(0);
+	exit(EXIT_FAILURE);
     }
 }
 #if DEPRE
