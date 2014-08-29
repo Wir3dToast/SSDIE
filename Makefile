@@ -1,5 +1,5 @@
 EXEC=ssdie 
-OBJECTS=main.o ssdie.o sql_functions.o file_functions.o
+OBJECTS=main.o ssdie.o sql_functions.o file_functions.o auxiliary.o 
 CFLAGS= -c -g -Wall 
 CC= c99
 LIB=-lsqlite3
@@ -19,5 +19,7 @@ sql_functions.o:
 
 file_functions.o:
 	$(CC) $(CFLAGS) src/file_functions.c
+auxiliary.o:
+	$(CC) $(CFLAGS) src/auxiliary.c
 clean:
 	rm -f *.o
