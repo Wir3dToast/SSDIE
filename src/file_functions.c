@@ -21,16 +21,9 @@ void check_make_result_dir(char* pathname) {
 }
 
 char* concat_pathname_elements(char* pathname, char* filename) {
-    size_t len_of_pathname = strlen(pathname);
-    size_t len_of_file = strlen(filename);
-
-    char* full_pathname = malloc(len_of_pathname + len_of_file + 2 * sizeof(char)); //Plus 2 for end-of-string terminator and "/"
-      
-    memcpy(full_pathname,pathname,len_of_pathname);
-    memset(full_pathname + len_of_pathname,'/',1);
-    memcpy(full_pathname + len_of_pathname + 1, filename, len_of_file + 1);
-
-    return full_pathname;
+    char *filepathname = strdup(pathname);
+    asprintf(&filepathname, "%s/%s", filepathname,filename);
+    return filepathname;
 
 }
 
