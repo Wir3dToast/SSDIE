@@ -29,6 +29,10 @@ int main(int argc, char** argv) {
     extract_contacts(db);
     printf("\n%s\n","Starting to extract Personal Profile");
     extract_profile(db);
+    printf("\n%s\n","Starting to extract Phone Calls");
+    extract_calls(db);
+    printf("\n%s\n","Starting to extract Messages");
+    extract_messages(db);
 
     sqlite3_close(db); 
     return EXIT_SUCCESS;
